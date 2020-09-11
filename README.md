@@ -28,6 +28,12 @@ For this part, I take first 5000 frames for each test case and record there time
 
 ![Experiment 3](./images/Different_BlockSize.PNG)
 
+### Extra Credit -- Grid Optimization
+For this part, I use the search radius of a particle to determine whether we need to check a particulour cell. In this way, we can exclude additional cells if a particle is lay exactly at the center line of a dimension. Here is the performance analysis by comparing the Uniform method and Coherent method before and after the optimization. You can find this part of code in velocity update section for these two methods. 
+
+![Experiment 4](./images/Grid_Optimization.PNG)
+
+
 ## Questions and answers
 
 1. For each implementation, how does changing the number of boids affect performance? Why do you think this is?

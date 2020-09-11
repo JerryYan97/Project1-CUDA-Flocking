@@ -455,7 +455,7 @@ __global__ void kernUpdateVelNeighborSearchScattered(
     int rule1_neighbor_count = 0;
     int rule3_neighbor_count = 0;
 
-  // - Identify which cells may contain neighbors. This isn't always 8. --- Grid width : distance = 2 : 1.
+    // - Identify which cells may contain neighbors. This isn't always 8. --- Grid width : distance = 2 : 1.
     glm::vec3 round_cell_relative_pos = glm::round(particle_relative_pos * inverseCellWidth);
     for (int i = -1; i < 1; ++i) {
         for (int j = -1; j < 1; ++j) {
@@ -504,6 +504,60 @@ __global__ void kernUpdateVelNeighborSearchScattered(
         }
     }
     
+
+    // Extra Credit -- Grid Optimization:
+    /*
+    float maxDistance = glm::max(glm::max(rule1Distance, rule2Distance), rule3Distance);
+    glm::vec3 radius_vector(maxDistance, maxDistance, maxDistance);
+    glm::vec3 upper_particle_search = temp_self_pos + radius_vector;
+    glm::vec3 lower_particle_search = temp_self_pos - radius_vector;
+    glm::ivec3 upper_cell_idx = glm::floor((upper_particle_search - gridMin) * inverseCellWidth);
+    glm::ivec3 lower_cell_idx = glm::floor((lower_particle_search - gridMin) * inverseCellWidth);
+    for (int neighbor_z_idx = lower_cell_idx[2]; neighbor_z_idx <= upper_cell_idx[2]; ++neighbor_z_idx) {
+        for (int neighbor_y_idx = lower_cell_idx[1]; neighbor_y_idx <= upper_cell_idx[1]; ++neighbor_y_idx) {
+            for (int neighbor_x_idx = lower_cell_idx[0]; neighbor_x_idx <= upper_cell_idx[0]; ++neighbor_x_idx) {
+                // This neighbor cell is out of boundary:
+                if (neighbor_x_idx < 0 || neighbor_y_idx < 0 || neighbor_z_idx < 0 || neighbor_x_idx >= gridResolution || neighbor_y_idx >= gridResolution || neighbor_z_idx >= gridResolution) {
+                    continue;
+                }
+                // Get the existing neighbor cell:
+                int curr_neighbor_idx = gridIndex3Dto1D(neighbor_x_idx, neighbor_y_idx, neighbor_z_idx, gridResolution);
+                // - For each cell, read the start/end indices in the boid pointer array.
+                int table_start_idx = gridCellStartIndices[curr_neighbor_idx];
+                int table_end_idx = gridCellEndIndices[curr_neighbor_idx];
+                if (table_start_idx < 0 || table_end_idx < 0) {
+                    // This cell doesn't enclose a particle
+                    continue;
+                }
+                // - Access each boid in the cell and compute velocity change from
+                //   the boids rules, if this boid is within the neighborhood distance.
+                for (int iTar = table_start_idx; iTar <= table_end_idx; ++iTar)
+                {
+                    int neighbor_particle_idx = particleArrayIndices[iTar];
+                    if (neighbor_particle_idx == particle_index) continue;
+                    glm::vec3 temp_tar_pos = pos[neighbor_particle_idx];
+                    glm::vec3 temp_tar_vel = vel1[neighbor_particle_idx];
+                    float distance = (float)glm::distance(temp_self_pos, temp_tar_pos);
+                    // Rule 1: boids fly towards their local perceived center of mass, which excludes themselves.
+                    if (distance < rule1Distance) {
+                        perceived_center += temp_tar_pos;
+                        rule1_neighbor_count++;
+                    }
+                    // Rule 2: boids try to stay a distance d away from each other.
+                    if (distance < rule2Distance) {
+                        rule2_vel -= (temp_tar_pos - temp_self_pos);
+                    }
+                    // Rule 3: boids try to match the speed of surrounding boids.
+                    if (distance < rule3Distance) {
+                        rule3_vel += temp_tar_vel;
+                        rule3_neighbor_count++;
+                    }
+                }
+            }
+        }
+    }
+    */
+
     /*
     // TODO-2.2: Identify which cells may contain neighbors. This isn't always 27. --- Grid width : distance = 1 : 1.
     int grid_x_idx = glm::floor(particle_relative_pos[0] * inverseCellWidth);
@@ -603,6 +657,7 @@ __global__ void kernUpdateVelNeighborSearchCoherent(
     int rule3_neighbor_count = 0;
 
     // - Identify which cells may contain neighbors. This isn't always 8. --- Grid width : distance = 2 : 1.
+    
     glm::vec3 round_cell_relative_pos = glm::round(particle_relative_pos * inverseCellWidth);
     for (int i = -1; i < 1; ++i) {
         for (int j = -1; j < 1; ++j) {
@@ -652,6 +707,60 @@ __global__ void kernUpdateVelNeighborSearchCoherent(
             }
         }
     }
+    
+    /*
+    // Extra Credit -- Grid Optimization:
+    float maxDistance = glm::max(glm::max(rule1Distance, rule2Distance), rule3Distance);
+    glm::vec3 radius_vector(maxDistance, maxDistance, maxDistance);
+    glm::vec3 upper_particle_search = temp_self_pos + radius_vector;
+    glm::vec3 lower_particle_search = temp_self_pos - radius_vector;
+    glm::ivec3 upper_cell_idx = glm::floor((upper_particle_search - gridMin) * inverseCellWidth);
+    glm::ivec3 lower_cell_idx = glm::floor((lower_particle_search - gridMin) * inverseCellWidth);
+    for (int neighbor_x_idx = lower_cell_idx[0]; neighbor_x_idx <= upper_cell_idx[0]; ++neighbor_x_idx) {
+        for (int neighbor_y_idx = lower_cell_idx[1]; neighbor_y_idx <= upper_cell_idx[1]; ++neighbor_y_idx) {
+            for (int neighbor_z_idx = lower_cell_idx[2]; neighbor_z_idx <= upper_cell_idx[2]; ++neighbor_z_idx) {
+                // This neighbor cell is out of boundary:
+                if (neighbor_x_idx < 0 || neighbor_y_idx < 0 || neighbor_z_idx < 0 || neighbor_x_idx >= gridResolution || neighbor_y_idx >= gridResolution || neighbor_z_idx >= gridResolution) {
+                    continue;
+                }
+                // Get the existing neighbor cell:
+                int curr_neighbor_idx = gridIndex3Dto1D(neighbor_x_idx, neighbor_y_idx, neighbor_z_idx, gridResolution);
+                // - For each cell, read the start/end indices in the boid pointer array.
+                int table_start_idx = gridCellStartIndices[curr_neighbor_idx];
+                int table_end_idx = gridCellEndIndices[curr_neighbor_idx];
+                if (table_start_idx < 0 || table_end_idx < 0) {
+                    // This cell doesn't enclose a particle
+                    continue;
+                }
+                // - Access each boid in the cell and compute velocity change from
+                //   the boids rules, if this boid is within the neighborhood distance.
+                for (int iTar = table_start_idx; iTar <= table_end_idx; ++iTar)
+                {
+                    int neighbor_particle_idx = iTar;
+                    if (neighbor_particle_idx == particle_index) continue;
+                    glm::vec3 temp_tar_pos = pos[neighbor_particle_idx];
+                    glm::vec3 temp_tar_vel = vel1[neighbor_particle_idx];
+                    float distance = (float)glm::distance(temp_self_pos, temp_tar_pos);
+                    // Rule 1: boids fly towards their local perceived center of mass, which excludes themselves.
+                    if (distance < rule1Distance) {
+                        perceived_center += temp_tar_pos;
+                        rule1_neighbor_count++;
+                    }
+                    // Rule 2: boids try to stay a distance d away from each other.
+                    if (distance < rule2Distance) {
+                        rule2_vel -= (temp_tar_pos - temp_self_pos);
+                    }
+                    // Rule 3: boids try to match the speed of surrounding boids.
+                    if (distance < rule3Distance) {
+                        rule3_vel += temp_tar_vel;
+                        rule3_neighbor_count++;
+                    }
+                }
+            }
+        }
+    }
+    */
+
     // TODO-2.2: Identify which cells may contain neighbors. This isn't always 27. --- Grid width : distance = 1 : 1.
     /*
     int grid_x_idx = glm::floor(particle_relative_pos[0] * inverseCellWidth);
