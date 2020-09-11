@@ -8,6 +8,10 @@
 
 ## Video demos
 
+![video screen shot](./images/Video_Capture.PNG)
+
+* [Youtube video link](https://youtu.be/Fz3OPSUzCes)
+
 
 ## Performance analysis
 For this part, I take first 5000 frames for each test case and record there time in order to keep consistency. Then, I calculate the FPS by dividing frames to time duration. Besides, there are three experiments that I need to take care. In the first experiment, I compare the framerate change with increasing of boids for naive, scattered uniform grid and coherent uniform frid in the condition of visualization. The second experiment is same as the first one except for that it needs to be conducted without visualization. Finally, I conduct an experiment to reveal the effects of different block sizes. 
@@ -36,8 +40,11 @@ For this part, I take first 5000 frames for each test case and record there time
 
 3. For the coherent uniform grid: did you experience any performance improvements with the more coherent uniform grid? Was this the outcome you expected? Why or why not?
 
-4. Did changing cell width and checking 27 vs 8 neighboring cells affect performance? Why or why not? Be careful: it is insufficient (and possibly incorrect) to say that 27-cell is slower simply because there are more cells to check!
+	Yes, but it depends. It gives less performance improvements by compare to uniform scattered method when the number of boids is small. However, it can give more improvement when the number of boids is large. I think this is a result that I expect, because coherent uniform grid method has more consumtption when it shuffle position and velocity. However, it is an o(1) consumption in parallel, which is less than the consumption of an additional level of indirect memory access when the number of boids is large. 
 
+4. Did changing cell width and checking 27 vs 8 neighboring cells affect performance? Why or why not? Be careful: it is insufficient (and possibly incorrect) to say that 27-cell is slower simply because there are more cells to check!
+	
+	Yes, it would affect the performance. According to my experiment conducted by using uniform scatterred grid with 50000 boids, checking 27 neighboring cells gives 941.553 FPS and checking 9 neighboring cells gives 650.395 FPS. Therefore, I think, with a finner grid, we can exclude lots of unnecessary particle checking, which can give us more performance than checking more particles with less checking cell number. 
 
 ## Acknowledgement
 * [CIS565 2020 Fall Course link](https://cis565-fall-2020.github.io/)

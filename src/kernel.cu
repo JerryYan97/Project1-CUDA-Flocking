@@ -38,7 +38,7 @@ void checkCUDAError(const char *msg, int line = -1) {
 
 /*! Block size used for CUDA kernel launch. */
 // #define blockSize 128
-#define blockSize 512
+#define blockSize 128
 
 // LOOK-1.2 Parameters for the boids algorithm.
 // These worked well in our reference implementation.
@@ -503,9 +503,9 @@ __global__ void kernUpdateVelNeighborSearchScattered(
             }
         }
     }
-
-    // TODO-2.2: Identify which cells may contain neighbors. This isn't always 27. --- Grid width : distance = 1 : 1.
+    
     /*
+    // TODO-2.2: Identify which cells may contain neighbors. This isn't always 27. --- Grid width : distance = 1 : 1.
     int grid_x_idx = glm::floor(particle_relative_pos[0] * inverseCellWidth);
     int grid_y_idx = glm::floor(particle_relative_pos[1] * inverseCellWidth);
     int grid_z_idx = glm::floor(particle_relative_pos[2] * inverseCellWidth);

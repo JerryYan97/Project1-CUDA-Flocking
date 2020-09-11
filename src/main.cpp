@@ -13,7 +13,7 @@
 // ================
 
 // LOOK-2.1 LOOK-2.3 - toggles for UNIFORM_GRID and COHERENT_GRID
-#define VISUALIZE 0
+#define VISUALIZE 1
 #define UNIFORM_GRID 1
 #define COHERENT_GRID 1
 
@@ -21,7 +21,7 @@
 // Uniform grid: const int N_FOR_VIS = 200000; ~= 70FPS
 // Navie: const int N_FOR_VIS = 50000; ~= 40FPS
 // TODO-2.2: It looks like the increased grid width can improve the efficiency.
-const int N_FOR_VIS = 50000;
+const int N_FOR_VIS = 200000;
 const float DT = 0.2f;
 
 /**
